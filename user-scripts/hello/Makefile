@@ -4,6 +4,11 @@
 # SPDX-License-Identifier: BSD-2-Clause
 #
 
+# make -f Makefile BUILD_DIR="/home/hazchem/Projects/cheribuild/user-scripts/hello" MICROKIT_SDK="/home/hazchem/cheri/output/cheri-std093-sdk/baremetal/baremetal-riscv64-purecap/microkit-sdk-2.0.1-dev" MICROKIT_BOARD="qemu_virt_riscv64" MICROKIT_CONFIG="cheri" CHERI=True LLVM=True
+# Currently fails on the compilation. clang doesn't recognise zcherihybrid as a valid extension.
+#   Make normal clang accept zcherihybrid.
+#   Find special cheri clang that already accepts zcherihybrid. 
+
 # What is BUILD_DIR? Build directory?
 #   Where the build directory actually is?
 #   Absolute path?
@@ -53,10 +58,13 @@ BOARD_DIR := $(MICROKIT_SDK)/board/$(MICROKIT_BOARD)/$(MICROKIT_CONFIG)
 #  This is becase the grep will return '#define CONFIG_SEL4_ARCH  riscv64' and our required field 'riscv64' is actually
 #  the 4th one here.
 ARCH := ${shell grep 'CONFIG_SEL4_ARCH  ' $(BOARD_DIR)/include/kernel/gen_config.h | cut -d' ' -f4} # Returns 'riscv64' for me.
+$(info ARCH is $(ARCH))
+$(info CHERI is $(CHERI))
 
 # Check if CHERI is set to true.
 ifeq ($(CHERI),True)
-  ifeq ($(ARCH),riscv64) # This is the one that will run.
+  ifeq ($(ARCH),riscv64 ) # This is the one that will run.
+    $(info ARCH correctly labelled as riscv64)
     # Build in purecap CHERI ABI
     ARCH_FLAGS := -march=rv64imafdc_zicsr_zcherihybrid -mabi=l64pc128d
     # march = Generate code for given RISC-V ISA or profile or a combination of them.
@@ -71,27 +79,31 @@ ifeq ($(CHERI),True)
     #    pointers and compressed(? chars?) = 128 bits?
     #    d = ???
     #  https://gcc.gnu.org/onlinedocs/gcc/RISC-V-Options.html#index-mabi-6
-  else ifeq ($(ARCH),aarch64)
+  else ifeq ($(ARCH),aarch64 )
     ARCH_FLAGS := -march=morello -mabi=purecap -DCONFIG_HAVE_CHERI
+  else
+    $(warning No ARCH selected. ARCH is $(ARCH))
   endif
   LIBS := -lmicrokit_purecap # Add microkit_purecap archive or object file specified by namespec to the list of files to link.
 else
+  $(warning CHERI needs to be set to True)
   # Do not have to worry about this, as I am using CHERI.
-  ifeq ($(ARCH),riscv64)
+  ifeq ($(ARCH),riscv64 )
     ARCH_FLAGS := -march=rv64imafdc_zicsr_zifencei -mabi=lp64d
   endif
   LIBS := -lmicrokit
 endif
 
 # Runs whether CHERI is true or not.
-ifeq ($(ARCH),aarch64)
+ifeq ($(ARCH),aarch64 )
   TARGET_TRIPLE := aarch64-none-elf # Bare metal / RTOS
   CFLAGS_ARCH := -mstrict-align $(ARCH_FLAGS)
   # -mstrict-align = Avoid generating memory accesses that may not be aligned on a natural object boundary as described in the architecture specification.
-else ifeq ($(ARCH),riscv64) # This is what runs.
+else ifeq ($(ARCH),riscv64 ) # This is what runs.
   TARGET_TRIPLE := riscv64-unknown-elf
   CFLAGS_ARCH := $(ARCH_FLAGS)
 else
+  $(warning Unsupported arch? Arch is $(ARCH))
   $(error Unsupported ARCH)
 endif
 
@@ -138,6 +150,8 @@ LIBS := $(LIBS) -Tmicrokit.ld # Adds microkit_purecap then states to use microki
 # Location of where the image and report files will be.
 IMAGE_FILE = $(BUILD_DIR)/loader.img
 REPORT_FILE = $(BUILD_DIR)/report.txt
+
+$(info Generating files...)
 
 all: $(IMAGE_FILE) # Something to do with having the MAKEFILE continue even if the IMAGE_FILE is present and seems to be up to date?
 
