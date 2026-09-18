@@ -113,10 +113,10 @@ endif
 # '?=' means the value is only set if it is undefined.
 MICROKIT_TOOL ?= $(MICROKIT_SDK)/bin/microkit
 
-# Name of an existing object file, or an object file that will be generated?
+# Names of all the intermediary object files that will be created.
 HELLO_OBJS := hello.o
 
-# Name of an existing ELF file, or an ELF to-be?
+# Names of all the intermediary ELF files that will be created.
 IMAGES := hello.elf
 # Flags used for compiling the C files?
 CFLAGS := -nostdlib -ffreestanding -g -O3 -Wall  -Wno-unused-function -Werror -I$(BOARD_DIR)/include $(CFLAGS_ARCH)
@@ -124,7 +124,7 @@ CFLAGS := -nostdlib -ffreestanding -g -O3 -Wall  -Wno-unused-function -Werror -I
   # -ffreestanding = compile for a freestanding (as opposed to a hosted one, freestanding means just the language and
   #                  nothing else) environment, though will still need to link with a C standard library.
   # -g = Generate debug info.
-  # -O3 = Highly optimise the code.
+  # -O3 = Highly optimise the code
   # -Wall = Enables all compiler warnings.
   # -Wno-unused-function = Turns off GCC warnings about unused functions. 
   # -Werror = Treats all warnings as errors.
@@ -149,8 +149,8 @@ $(BUILD_DIR)/%.o: %.c Makefile # To make the object file, the files .c and Makef
 # $< = Compile the first prerequisite (which is the .c file).
 # -o $@ = Write output to the target being generated (which is the .o file).
 
-$(BUILD_DIR)/hello.elf: $(addprefix $(BUILD_DIR)/, $(HELLO_OBJS)) # The object file 'hello.o' (compiled in previous command) is needed to construct the '.elf' file.
-	$(LD) $(LDFLAGS) $^ $(LIBS) -o $@ # Links the object files and libraries using the linker script to generate a '.elf' file.
+$(BUILD_DIR)/hello.elf: $(addprefix $(BUILD_DIR)/, $(HELLO_OBJS)) # The object file 'hello.o' (compiled in previous command) is needed to construct the ELF file.
+	$(LD) $(LDFLAGS) $^ $(LIBS) -o $@ # Links the object files and libraries using the linker script to generate an ELF file.
 # $(LD) = Run the specified linker.
 # $(LDFLAGS) = List specified flags. 
 # $^ = Link all object files (lists all pre-requisites with spaces between them).
@@ -159,10 +159,10 @@ $(BUILD_DIR)/hello.elf: $(addprefix $(BUILD_DIR)/, $(HELLO_OBJS)) # The object f
 
 $(IMAGE_FILE) $(REPORT_FILE): $(addprefix $(BUILD_DIR)/, $(IMAGES)) hello.system # The previously generated images and, a .system file are needed to create the image and report file.
 	$(MICROKIT_TOOL) hello.system --search-path $(BUILD_DIR) --board $(MICROKIT_BOARD) --config $(MICROKIT_CONFIG) -o $(IMAGE_FILE) -r $(REPORT_FILE) # Uses microkit to create a .img file.
-# $(MICROKIT_TOOL) 
-# hello.system 
-# --search-path $(BUILD_DIR) 
-# --board $(MICROKIT_BOARD) 
-# --config $(MICROKIT_CONFIG) 
-# -o $(IMAGE_FILE) 
-# -r $(REPORT_FILE)
+# $(MICROKIT_TOOL) = Microkit binary inside the Microkit SDK. 
+# hello.system = Name of the system file to use.
+# --search-path $(BUILD_DIR) = Build directory? Places to search for the .elf files produced?
+# --board $(MICROKIT_BOARD) = Board to use (qemu_virt_riscv64).
+# --config $(MICROKIT_CONFIG) = Config to use (cheri).
+# -o $(IMAGE_FILE) = Location to output the created .img file.
+# -r $(REPORT_FILE) = Location to output report to.
