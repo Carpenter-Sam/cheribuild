@@ -75,10 +75,9 @@ ifeq ($(CHERI),True)
     #    zcherihybrid (extension) = CHERI hybrid ext?
     # mabi = Specify integer and floating-point calling convention.
     #  l64pc128d
-    #    l64 = 'long' = 64 bits?
-    #    pointers and compressed(? chars?) = 128 bits?
-    #    d = ???
-    #  https://gcc.gnu.org/onlinedocs/gcc/RISC-V-Options.html#index-mabi-6
+    #    l64 = 'long' type is 64 bits
+    #    pc128 = purecap with 128-bit capabilities as pointers
+    #    d = double-precision hardware float ABI
   else ifeq ($(ARCH),aarch64 )
     ARCH_FLAGS := -march=morello -mabi=purecap -DCONFIG_HAVE_CHERI
   else
@@ -132,13 +131,13 @@ HELLO_OBJS := hello.o
 IMAGES := hello.elf
 # Flags used for compiling the C files?
 CFLAGS := -nostdlib -ffreestanding -g -O3 -Wall  -Wno-unused-function -Werror -I$(BOARD_DIR)/include $(CFLAGS_ARCH)
-  # -nostdlib = don't search standard system directories for include files.
+  # -nostdlib = don't link standard startup files.
   # -ffreestanding = compile for a freestanding (as opposed to a hosted one, freestanding means just the language and
   #                  nothing else) environment, though will still need to link with a C standard library.
   # -g = Generate debug info.
   # -O3 = Highly optimise the code
   # -Wall = Enables all compiler warnings.
-  # -Wno-unused-function = Turns off GCC warnings about unused functions. 
+  # -Wno-unused-function = Turns off compiler warnings about unused functions. 
   # -Werror = Treats all warnings as errors.
   # -I = Add the board directory's include directory to the search path for include files.
   # CFLAGS_ARCH = Build in purecap CHERI ABI. 
@@ -153,7 +152,7 @@ REPORT_FILE = $(BUILD_DIR)/report.txt
 
 $(info Generating files...)
 
-all: $(IMAGE_FILE) # Something to do with having the MAKEFILE continue even if the IMAGE_FILE is present and seems to be up to date?
+all: $(IMAGE_FILE) # the default goal, which is an image file
 
 $(BUILD_DIR)/%.o: %.c Makefile # To make the object file, the files .c and Makefile need to exist first.
 	$(CC) -c $(CFLAGS) $< -o $@ # Compile and generate an object file with the specified flags.
