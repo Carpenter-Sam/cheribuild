@@ -66,7 +66,7 @@ ifeq ($(CHERI),True)
   ifeq ($(ARCH),riscv64 ) # This is the one that will run.
     $(info ARCH correctly labelled as riscv64)
     # Build in purecap CHERI ABI
-    ARCH_FLAGS := -march=rv64imafdc_zicsr_zcherihybrid -mabi=l64pc128d
+    ARCH_FLAGS := -march=rv64imafdc_zicsr_xcheri -mabi=l64pc128d
     # march = Generate code for given RISC-V ISA or profile or a combination of them.
     #  rv64imafdc_zicsr_zcherihybrid
     #    rv64 = risc64, i = base integer extension (base ISA), m = integer multiplication and division extension,
@@ -110,9 +110,9 @@ endif
 ifeq ($(strip $(LLVM)),True)
   # Clang is a compile for C (and C++). -target specifies the architecture to build for, which will be
   # 'riscv64-unknown-elf'.
-  CC := clang -target $(TARGET_TRIPLE)
-  AS := clang -target $(TARGET_TRIPLE)
-  LD := ld.lld # ELF linker from the LLVM project.
+  CC := /mnt/data/cheri/output/cheri-std093-sdk/bin/clang -target $(TARGET_TRIPLE)
+  AS := /mnt/data/cheri/output/cheri-std093-sdk/bin/clang -target $(TARGET_TRIPLE)
+  LD := /mnt/data/cheri/output/cheri-std093-sdk/bin/ld.lld # ELF linker from the LLVM project.
 else
   CC := $(TARGET_TRIPLE)-gcc # C = C complier? Compiler collection?
   LD := $(TARGET_TRIPLE)-ld # LD = linker, combines a number of object and archive files, relocates their
